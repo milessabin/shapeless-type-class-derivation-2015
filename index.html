@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TITLE - Underscore.io</title>
+  <title>shapeless type class derivation in action - Underscore.io</title>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <style type="text/css">
     body { font-family: 'Lato';}
     h1, h2, h3 {
       font-weight: normal;
     }
-    .remark-code, .remark-inline-code { font-family: 'Menlo'; }
+    .remark-code, .remark-inline-code {
+      font-family: 'DejaVu Sans Mono';
+    }
 
     .underscore {
       background: #0E2C3C;
@@ -23,10 +25,13 @@
       text-align: center;
     }
     .title > h1 {
-      font-size: 300%;
-    }
-    .title > h2  {
       margin-top: -5%;
+      font-size: 200%;
+    }
+    .title > h2 {
+      font-size: 150%;
+    }
+    .title > h3  {
       font-size: 100%;
     }
     .title img {
@@ -36,8 +41,11 @@
       margin: 0;
       padding: 0;
       line-height: 60px;
-      text-align: center;
       list-style-type: none;
+    }
+    ul > li {
+      margin: 0 0 3% 0;
+      padding: 0;
     }
     blockquote {
       font-size: 200%;
@@ -64,80 +72,285 @@
     class: center, middle, hero
 
     .title[
-      # Title
-      ## Richard Dallaway, [@d6y](http://twitter.com/d6y)
+      ## The swiss army knife of generic programming &mdash;
+      # shapeless's TypeClass type class in action
+
+      ### Miles Sabin, [@milessabin](http://twitter.com/milessabin)
 
       [![Underscore Logo](img/white-logo.png)](http://underscore.io/)
     ]
 
-    ???
+    ---
+    class: center, middle, hero
 
-    Speaker notes go after ???
+    .title[
+      ## The swiss army knife of generic programming &mdash;
+      # shapeless's type class derivation in action
 
-    Toggle speaker view by pressing P
+      ### Miles Sabin, [@milessabin](http://twitter.com/milessabin)
 
-    Pressing C clones the slideshow view,
-    which is the view to put on the projector
-    if you're using speaker view.
-
-    Press ? to toggle keyboard commands help.
+      [![Underscore Logo](img/white-logo.png)](http://underscore.io/)
+    ]
 
     ---
-
-    # Agenda
-
-    1. Introduction
-    2. Deep-dive
-    3. ...
-
-
-    ---
-    class: center, middle
-
-    # Let's Write Some Code
-
-    ---
-
-    # Code
+    # ADTs in Scala
 
     ```
-    case class Wibble(x: Throwable \/ Long) {
-      def answer = 42
+    // Simple tree ADT ...
+    sealed trait Animal
+
+    case class Cat(name: String, fish: Int) extends Animal
+
+    case class Dog(name: String, bones: Int) extends Animal
+    ```
+
+    ---
+    # ADTs in Scala
+
+    <img src="img/tigger.jpg" width="97%">
+
+    ---
+    # Type classes in Scala
+
+    ```
+    // Type class
+    trait Eq[T] {
+      def eqv(x: T, y: T): Boolean
     }
 
-    val f: Int => String =
-      x.toString
     ```
 
     ---
-    class: center
+    # Type classes in Scala
 
-    # Pictures & Title
+    ```
+    // Type class
+    trait Eq[T] {
+      def eqv(x: T, y: T): Boolean
+    }
 
-    <img src="screengrab.png" width="97%">
+    // Data type
+    trait Animal ...
+
+    // Eq instance for Foo
+    object Animal {
+      implicit def eqAnimal: Eq[Animal] ...
+    }
+    
+    ```
 
     ---
-    background-image: url(screengrab.png)
+    # Type classes in Scala
 
-    ???
+    ```
+    // Type class
+    trait Eq[T] {
+      def eqv(x: T, y: T): Boolean
+    }
 
-    That's the best I can find for a full-page image.
-    The repeat may just be an issue with remark, [#211](https://github.com/gnab/remark/issues/211), specifically.
+    // Data type
+    trait Animal ...
+
+    // Eq instance for Foo
+    object Animal {
+      implicit def eqAnimal: Eq[Animal] ...
+    }
+
+    // Summoning an instance
+    scala> implicitly[Eq[Animal]]
+    res0: Eq[Animal] = ...
+    
+    ```
+
+    ---
+    # Type classes in Scala
+
+    ```
+    // Type class
+    trait Eq[T] {
+      def eqv(x: T, y: T): Boolean
+    }
+
+    // Data type
+    trait Animal ...
+
+    // Eq instance for Foo
+    object Animal {
+      implicit def eqAnimal: Eq[Animal] ...
+    }
+
+    // Summoning an instance
+    def foo[T](x: T, y: T)(implicit eqT: Eq[T]) =
+      eqT.eqv(x, y)
+    
+    ```
+
+    ---
+    # Type classes in Scala
+
+    ```
+    // Type class
+    trait Eq[T] {
+      def eqv(x: T, y: T): Boolean
+    }
+
+    // Data type
+    trait Animal ...
+
+    // Eq instance for Foo
+    object Animal {
+      implicit def eqAnimal: Eq[Animal] ...
+    }
+
+    // Syntax
+    implicit class EqOps[T](x: T)(implicit eqT: Eq[T]) {
+      def ===(y: T): Boolean = eqT.eqv(x, y)
+    }
+    
+    ```
+
+    ---
+    # Type classes in Scala
+
+    ```
+    // Type class
+    trait Eq[T] {
+      def eqv(x: T, y: T): Boolean
+    }
+
+    // Data type
+    trait Animal ...
+
+    // Eq instance for Foo
+    object Animal {
+      implicit def eqAnimal: Eq[Animal] ...
+    }
+
+    // Syntax
+    implicit class EqOps[T](x: T)(implicit eqT: Eq[T]) {
+      def ===(y: T): Boolean = eqT.eqv(x, y)
+    }
+    
+    // Summoning an instance
+    def foo[T: Eq](x: T, y: T) = x === y
+    
+    ```
 
     ---
     class: center, middle
 
-    > “I refuse to answer that question on the grounds that I don't know the answer”
+    # Example ...
 
-    — Douglas Adams
+    ### https://github.com/milessabin/demo-scaladayssf-2015
 
+    ---
+    # History
+
+    --
+    * Haskell 98 (Eq, Ord, Enum, Bound, Show, Read)
+
+    --
+    * A Generic Deriving Mechanism for Haskell,
+      Magalhaes, Dijkstra, Jeuring, Loh, Haskell Symposium 2010
+      (GHC 7.2.1, 2011)
+
+    --
+    * Reducing boilerplate by generating type class instances automatically
+      Lars Hupel, Scala Workshop 2013
+
+    --
+    * TypeClass in shapeless 2.0.0, Lars Hupel
+
+    --
+    * Lazy and Generic in shapeless 2.1.0
+
+    --
+    * Generic1 in shapeless 2.2.0 ... on to Cats
+
+    ---
+    # ADTs in Scala
+
+    ```
+    // Simple tree ADT ...
+    sealed trait Tree[T]
+
+    //
+    case class Leaf[T](t: T) extends Tree[T]
+
+    //
+    case class Node[T](l: Tree[T], r: Tree[T]) extends Tree[T]
+    ```
+
+    ---
+    # ADTs in Scala
+
+    ```
+    // Sum: Leaf[T] :+: Node[T] :+: CNil
+    sealed trait Tree[T]
+
+    // Product: T :: HNil
+    case class Leaf[T](t: T) extends Tree[T]
+
+    // Product: Tree[T] :: Tree[T] :: HNil
+    case class Node[T](l: Tree[T], r: Tree[T]) extends Tree[T]
+    ```
+
+    ---
+    # ADTs in Scala
+
+    ```
+      Sum:             Leaf[T] :+: Node[T]
+
+                      /                   \
+                     /                     \
+                    /                       \
+
+      Product:    T                    Tree[T] :: Tree[T]
+
+    ```
+
+    ---
+    class: center, middle
+
+    # Enough slides ... code!
+
+    ### https://github.com/milessabin/demo-scaladayssf-2015
+
+    ---
+    # (De)serialization
+
+    * Scodec &mdash; https://github.com/scodec/scodec
+
+    * argonaut-shapeless &mdash; https://github.com/alexarchambault/argonaut-shapeless
+
+    * Ensime SWANK protocol
+
+    * Several simple examples in shapeless repo
+    
+    ---
+    class: center, middle
+
+    # Questions?
+
+    ---
+    # shapeless resources
+
+    * Fork it! &mdash; https://github.com/milessabin/shapeless
+
+    * Gitter channel &mdash; https://gitter.im/milessabin/shapeless
+
+    * Blogs &mdash;
+      * Mine &mdash; http://chuusai.com/blog
+      * Underscore &mdash; http://underscore.io/blog
+      * Typelevel &mdash; http://typelevel.org/blog
+      * Travis Brown &mdash; http://meta.plasm.us
 
     ---
     class: center, middle, hero
 
     .title[
       # Thank You
-      ## Richard Dallaway, [@d6y](http://twitter.com/d6y)
+      ## Miles Sabin, [@milessabin](http://twitter.com/milessabin)
       ### http://underscore.io/
 
       [![Underscore Logo](img/white-logo.png)](http://underscore.io/)
